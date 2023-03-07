@@ -3,6 +3,8 @@
 /* Utility Functions */
 bool isMountain(int* ar, const int& size, int& mtx, short& mti){
     //mtx: value of peek and mti: index of peek
+    if(size == 1) {mtx = ar[0]; mti = 0; return true;}
+
     bool isFlip = false;
     for(int i = 0; i < size - 1; ++i){
         if(ar[i] == ar[i+1] || (ar[i] < ar[i+1] && isFlip)) return false;
@@ -89,8 +91,6 @@ pair<int, short> index_first_secondMax(int* ar, const int& size){
             }
         }
     }
-    // cout << "ar[secMmax]:  " << ar[secMax] << endl
-    //      << "secMax:       " << secMax << endl;
 
     return make_pair(ar[secMax], secMax);
 }
@@ -216,19 +216,17 @@ void update(Knight& k){
     return;
 }
 
-//using when HP <= 0
+//using when HP <= 0. return false if not have phoenixdown
 bool updateHP(Knight& k){
     if(k.phoenixdown == 0) {
         k.rescue = 0; 
         return false; //return false means that no rescue
     }
     else {
-        k.HP = k.MaxHP; 
+        k.HP = k.MaxHP;     
         k.phoenixdown -= 1;
-        if(k.state.s != Shape::Human){
-            if(k.state.s == Shape::Frog) k.level = k.prelevel;
-            k.state = {Shape::Human, -1};
-        }
+        if(k.state.s == Shape::Frog) {k.level = k.prelevel;}
+        k.state = {Shape::Human, -1};
     }  
     return true;
 }
@@ -261,7 +259,7 @@ bool Event1_5(const short& event, const short& idx_event, Knight& k){
 
     if(k.HP <= 0){
         bool c = updateHP(k);
-        if(!c) {update(k); return false;}
+        if(!c) {return false;}
     }
 
     update(k);
@@ -316,26 +314,29 @@ bool Event7(const short& idx_event, Knight& k){
     else update(k);
     return true;
 }
+
+
 bool Event11(Knight& k){
     short n1 = ((k.level + k.phoenixdown) % 5 + 1) * 3;
     short s1 = sum_of_max(n1);
     k.HP += (s1%100);
-    cout << k.HP << endl;
+
     if(k.HP < k.MaxHP) 
     {
         increasePrime(k.HP);
-        cout << k.HP << endl;
         if(k.HP > k.MaxHP) k.HP = k.MaxHP;
     }else k.HP = k.MaxHP;
     update(k);
     return true;
 }
+
 bool Event12(Knight& k){
     if(k.HP > 1) {k.HP = decrease_Fibo(k.HP);}
     update(k);
     return true;
 }
 
+// MUSH_GHOST
 bool Event13(const string& s, Knight& k){
     for(int i = 2; i < (int)s.length(); ++i){
         short type = s[i] - '0';
@@ -343,7 +344,7 @@ bool Event13(const string& s, Knight& k){
             short maxi, mini;
             maxi = index_min_max(ar_mush, n2, true).first;
             mini = index_min_max(ar_mush, n2, true).second;
-            cout << "Type 1:  " << "maxi: " << maxi <<  " mini:  " << mini << endl; 
+            //cout << "Type 1:  " << "maxi: " << maxi <<  " mini:  " << mini << endl; 
             k.HP -= (maxi + mini);
         }
         else if(type == 2){
@@ -354,9 +355,8 @@ bool Event13(const string& s, Knight& k){
             else{
                 mtx = -2; mti = -3;
                 k.HP -= (mtx + mti);
-                if(k.HP > k.MaxHP) k.HP = k.MaxHP;
             }
-            cout << "Type 2:  " << "mtx: " << mtx <<  " mti:  " << mti << endl; 
+            // cout << "Type 2:  " << "mtx: " << mtx <<  " mti:  " << mti << endl; 
         }
         else if(type == 3){
             int* ar = new int[n2];
@@ -366,11 +366,11 @@ bool Event13(const string& s, Knight& k){
                 }
                 else ar[i] = (17 * ar_mush[i] + 9) % 257;
             }
-
+            
             short maxi2 = index_min_max(ar, n2, false).first;
             short mini2 = index_min_max(ar, n2, false).second;
             k.HP -= (maxi2 + mini2);
-            cout << "Type 3:  " << "maxi2: " << maxi2 <<  " mini2:  " << mini2 << endl; 
+            //cout << "Type 3:  " << "maxi2: " << maxi2 <<  " mini2:  " << mini2 << endl; 
             delete ar;
         }
         else if(type == 4){
@@ -380,18 +380,18 @@ bool Event13(const string& s, Knight& k){
                     ar[i] = (-17 * ar_mush[i] + 9) % 257;
                 }
                 else ar[i] = (17 * ar_mush[i] + 9) % 257;
-                //cout << ar[i] << endl;
             }
+
             int max2_3x   = index_first_secondMax(ar, n2).first;
             short max2_3i = index_first_secondMax(ar, n2).second;
             k.HP -=(max2_3x + max2_3i);
-            cout << "Type 4:  " << "max2_3x: " << max2_3x <<  " max2_3i:  " << max2_3i << endl; 
+            //scout << "Type 4:  " << "max2_3x: " << max2_3x <<  " max2_3i:  " << max2_3i << endl; 
             delete ar;
         }
         if(k.HP > k.MaxHP) k.HP = k.MaxHP;
         if(k.HP <= 0) {
             bool c = updateHP(k);
-            if(!c)  {update(k); return false;}
+            if(!c)  {return false;}
         }
     }
     update(k);
@@ -408,7 +408,9 @@ bool Event15_17(const short& event, Knight& k){
 }
 
 bool Event19(Knight& k){
+    //If visit Event 19, knight will skip
     if(visited[File::Ascle] == true) {update(k); return true;}
+    
     int count;
     for(int i = 0; i < r1; ++i){
         count = 0;
@@ -430,6 +432,7 @@ bool Event19(Knight& k){
     }
     visited[File::Ascle] = true;
     update(k);
+    
     return true;
 }
 
@@ -445,12 +448,15 @@ short returnHP(const string& s){
 }
 
 bool Event18(Knight& k){
+    //If visit Event 18, knight will skip
     if(visited[File::Merlin] == true) {update(k); return true;}
+
     for(int i = 0; i < n9; ++i)
         k.HP += returnHP(ar_merlin[i]);
     if(k.HP > k.MaxHP) k.HP = k.MaxHP;
     visited[File::Merlin] = true;
     update(k);
+
     return true;
 }
 
@@ -467,7 +473,6 @@ bool Event99(Knight& k){
        update(k);
        return false;
     }
-
     return true;
 }
 

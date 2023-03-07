@@ -18,7 +18,7 @@ enum File {Mush = 0, Ascle, Merlin};
 
 struct State{
     Shape s;
-    short time; // time = -1 means that time is infinity
+    short time; // time = -1 means s == Shape::Human
 };
 
 struct Knight{
@@ -82,7 +82,6 @@ void journey(Knight& k, const string& levents);
 
 void display(int HP, int level, int remedy, int maidenkiss, int phoenixdown, int rescue);
 void adventureToKoopa(string file_input, int & HP, int & level, int & remedy, int & maidenkiss, int & phoenixdown, int & rescue);
-
 
 
 
